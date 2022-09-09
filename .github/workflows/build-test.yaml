@@ -1,6 +1,10 @@
-name: "CI"
+name: "Build and Test"
 
-on: push
+on:
+  workflow_call:
+  push:
+    branches-ignore:
+      - main
 
 jobs:
   setup-jdk:
@@ -27,17 +31,3 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sbt test
-  add-release:
-    name: "Add release"
-    runs-on: "ubuntu-latest"
-    needs: test
-    if: github.ref_type == 'tag'
-    steps:
-      - uses: actions/checkout@v3
-      - run: sbt assembly
-      - run: mkdir release && cp target/ptp-latest.jar release/ptp-${{ github.ref_name }}.jar
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          files: release/*.jar
