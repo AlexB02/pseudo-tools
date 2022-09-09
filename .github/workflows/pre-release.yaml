@@ -22,3 +22,4 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           files: release/*.jar
+          automatic_release_tag: latest

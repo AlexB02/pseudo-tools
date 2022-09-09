@@ -16,7 +16,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '11'
-          cache: sbt
+          cache: 'sbt'
   build:
     name: "Build"
     runs-on: "ubuntu-latest"
