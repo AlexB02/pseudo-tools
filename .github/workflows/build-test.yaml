@@ -16,7 +16,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-          cache: 'sbt'
+      - name: Inspect setup
+        run: ls -a
   build:
     name: "Build"
     runs-on: "ubuntu-latest"
@@ -24,6 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sbt compile
+      - name: Inspect build
+        run: ls -a
   test:
     name: "Test"
     runs-on: "ubuntu-latest"
