@@ -5,6 +5,7 @@ on: push
 jobs:
   setup-jdk:
     name: "Setup JDK"
+    runs-on: "ubuntu-latest"
     steps:
       - uses: actions/setup-java@v3
         with:
