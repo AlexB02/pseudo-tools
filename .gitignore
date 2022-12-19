@@ -6,3 +6,5 @@
 .vscode/
 target/
 build/out/
+**/*.ptb
+!examples/**/*.ptb
