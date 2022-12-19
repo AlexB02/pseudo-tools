@@ -45,6 +45,14 @@ class Emulator {
     return std::stoi(string.substr(1, std::string::npos));
   }
 
+  void PrintMemory() {
+    std::cout << "[";
+    for (size_t i = 0; i < _MEM_SIZE - 1; i++) {
+      std::cout << memory_[i] << ",";
+    }
+    std::cout << memory_[_MEM_SIZE - 1] << "]" << std::endl;
+  }
+
   int EmulateMainProgram(std::string& line) {
     std::vector<std::string> tokens = Tokenise(line);
     if (tokens[0] == "PRINT") {
@@ -55,11 +63,7 @@ class Emulator {
       int const_number = GetStringNumber(tokens[1]);
       std::cout << stringMap_[const_number] << std::endl;
     } else if (line == "_PMEM()") {
-      std::cout << "[";
-      for (size_t i = 0; i < _MEM_SIZE - 1; i++) {
-        std::cout << memory_[i] << ",";
-      }
-      std::cout << memory_[_MEM_SIZE - 1] << "]" << std::endl;
+      PrintMemory();
     } else if (tokens[0] == "CMOV") {
       if (tokens.size() != 3) {
         std::cerr << "Invalid CMOV tokens" << std::endl;
