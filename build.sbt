@@ -6,5 +6,5 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.13" % "test"
 lazy val root = (project in file(".")).settings(
     name := "Pseudo Tools Project",
     scalaVersion := "2.13.8",
-    assembly / assemblyOutputPath := file("target/ptp-latest.jar")
+    assembly / assemblyOutputPath := file("build/out/ptp-latest.jar")
 )

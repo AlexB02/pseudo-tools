@@ -1,5 +1,5 @@
 S0:
-    What is your name?
+What is your name?
 P:
-    PRINT S0
-    INPUT &X
+PRINT S0
+INPUT &X
