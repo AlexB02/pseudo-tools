@@ -16,7 +16,13 @@ int main(int argc, char **argv) {
     std::string line = lines[lineNumber];
     int x = emulator.EmulateLine(line);
     if (x != 0) {
-      std::cerr << "Failed to emulate at line " << lineNumber << std::endl;
+      std::cerr << "Exception code: " 
+                << x 
+                << " in " 
+                << filename 
+                << ":"
+                << lineNumber 
+                << std::endl;
       return x;
     }
   }
