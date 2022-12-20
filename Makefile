@@ -8,6 +8,9 @@ out:
 psemulate: out
 	$(CPP_COMPILER) $(FLAGS) src/main/emulator/ptpemulator.cpp -o $(BUILD_DIR)/psemulate
 
+psemulate-gdb: out
+	$(CPP_COMPILER) $(FLAGS) src/main/emulator/ptpemulator.cpp -o $(BUILD_DIR)/psemulate -g
+
 pscompile: out
 	sbt assembly -error
 	sh build/create_pscompile_script.sh
