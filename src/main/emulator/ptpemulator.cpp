@@ -11,20 +11,10 @@ int main(int argc, char **argv) {
   }
   const std::string filename = argv[1];
   std::map<size_t, std::string> lines = OpenFile(filename);
-  Emulator emulator;
+  Emulator emulator(filename);
   for (size_t lineNumber = 1; lineNumber <= lines.size(); lineNumber++) {
     std::string line = lines[lineNumber];
-    int x = emulator.EmulateLine(line);
-    if (x != 0) {
-      std::cerr << "Exception code: " 
-                << x 
-                << " in " 
-                << filename 
-                << ":"
-                << lineNumber 
-                << std::endl;
-      return x;
-    }
+    emulator.EmulateLine(line);
   }
   return 0;
 }

@@ -1,8 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include "error.hh"
 #include "../file_handler.hh"
 #include "tokeniser.hh"
+#include "number.hh"
 #define _MEM_SIZE 128
 #define SUCCESS 0
 #define ERROR 1
@@ -15,7 +17,7 @@ struct EmulatorFlags {
 
 class Emulator {
  public:
-  Emulator() { 
+  Emulator(std::string fileName) : exceptionHandler_(fileName) { 
     flags_.StringConstant = false;
     flags_.Program = false;
     flags_.Fail = false;
@@ -43,21 +45,18 @@ class Emulator {
   std::string prevLine_;
   EmulatorFlags flags_;
   std::map<size_t, std::string> stringMap_;
-  uint32_t memory_[_MEM_SIZE] = {};
+  int32_t memory_[_MEM_SIZE] = {};
+  ExceptionHandler exceptionHandler_;
+  std::string const fileName_;
 
-  // Parse int from string at first index. Sets Fail flag if couldn't parse.
-  size_t GetStringNumber(std::string& string) {
-    int number = 0;
-    try {
-      number = std::stoi(string.substr(1, std::string::npos));
-    } catch (std::invalid_argument const& ex) {
-        std::cerr << "Couldn't parse int from \"" << string << "\"" << std::endl;
-        flags_.Fail = true;
-    } catch (std::out_of_range const& ex) {
-        std::cerr << "Couldn't parse int from \"" << string << "\"" << std::endl;
-        flags_.Fail = true;
+  // Parse int from string at first index.
+  size_t GetStringNumber(std::string const string, int from) {
+    assert(from < string.size());
+    std::string substring = string.substr(from, std::string::npos);
+    if (!IsInt(substring)) {
+      exceptionHandler_.ThrowException(ERROR, "Couldn't parse int from \"" + string + "\"");
     }
-    return number;
+    return std::stoi(substring);
   }
 
   // Prettily print memory to std out.
@@ -69,16 +68,36 @@ class Emulator {
     std::cout << memory_[_MEM_SIZE - 1] << "]" << std::endl;
   }
 
+  bool IsAddress(std::string const address) {
+    if (address.at(0) != '&' || address.size() == 1) {
+      return false;
+    }
+    size_t number = GetStringNumber(address, 1);
+    return true;
+  }
+
+  void HandlePrintAddress(std::string const address) {
+    int loc = GetStringNumber(address, 1);
+    if (loc >= _MEM_SIZE) {
+      exceptionHandler_.ThrowException(2, "Out of memory access");
+    }
+    std::cout << memory_[loc] << std::endl;
+  }
+
   // Handle print instruction.
   int HandlePrint(std::vector<std::string>& tokens) {
     if (tokens.size() != 2) {
       std::cerr << "Invalid PRINT token" << std::endl;
       return ERROR;
     }
-    int const_number = GetStringNumber(tokens[1]);
-    if (flags_.Fail) {
-      return ERROR;
+    std::string& printArg = tokens[1];
+    exceptionHandler_.Assert(printArg.size() > 1,
+                             "Invalid PRINT argument: " + printArg);
+    if (IsAddress(printArg)) {
+      HandlePrintAddress(printArg);
+      return SUCCESS;
     }
+    int const_number = GetStringNumber(printArg, 1);
     if (!stringMap_.contains(const_number)) {
       std::cerr << "S" << const_number << " not found"
                 << std::endl;
@@ -88,7 +107,7 @@ class Emulator {
     return SUCCESS;
   }
 
-  int EmulateMainProgram(std::string& line) {
+  int EmulateMainProgram(std::string const line) {
     if (line.length() == 0) {
       return SUCCESS;
     }
@@ -118,26 +137,36 @@ class Emulator {
         std::cerr << "Invalid CMOV tokens" << std::endl;
         return ERROR;
       }
-      int locationNumber = GetStringNumber(location);
-      if (flags_.Fail) {
-        return ERROR;
-      }
+      int locationNumber = GetStringNumber(location, 1);
       memory_[locationNumber] = constant;
     } else if (instruction == "RMOV") {
-      if (tokens.size() != 3) {
-        std::cerr << "Invalid RMOV tokens" << std::endl;
-        return ERROR;
-      }
+      exceptionHandler_.Assert(tokens.size() == 3, "Invalid RMOV tokens");
       std::string strtLoc = tokens[1];
       std::string dstLoc = tokens[2];
-      if (strtLoc.at(0) != '&' || dstLoc.at(0) != '&') {
-        std::cerr << "Invalid RMOV tokens" << std::endl;
-        return ERROR;
-      }
-      memory_[GetStringNumber(dstLoc)] = memory_[GetStringNumber(strtLoc)];
-    } else {
-      std::cerr << "Invalid instruction " << line << std::endl;
-      return ERROR;
+      exceptionHandler_.Assert(IsAddress(strtLoc) && IsAddress(dstLoc),
+                               "Invalid RMOV tokens");
+      memory_[GetStringNumber(dstLoc, 1)] =
+          memory_[GetStringNumber(strtLoc, 1)];
+    } else if (instruction == "CADD") {
+      exceptionHandler_.Assert(tokens.size() == 3, "Invalid CADD");
+      std::string const constant = tokens[1];
+      std::string const address = tokens[2];
+      exceptionHandler_.Assert(IsInt(constant), "Invalid constant in CADD");
+      exceptionHandler_.Assert(IsAddress(address), "Invalid address in CADD");
+      int add_value = std::stoi(constant);
+      size_t loc = GetStringNumber(address, 1);
+      memory_[loc] = memory_[loc] + add_value;
+    } else if (instruction == "RADD") {
+      exceptionHandler_.Assert(tokens.size() == 3, "Invalid RADD tokens");
+      std::string strtLoc = tokens[1];
+      std::string dstLoc = tokens[2];
+      exceptionHandler_.Assert(IsAddress(strtLoc) && IsAddress(dstLoc),
+                               "Invalid RADD tokens");
+      memory_[GetStringNumber(dstLoc, 1)] =
+          memory_[GetStringNumber(dstLoc, 1)] + memory_[GetStringNumber(strtLoc, 1)];
+    }
+    else {
+      exceptionHandler_.ThrowException(1, "Invalid instruction " + line);
     }
     return SUCCESS;
   }
@@ -148,7 +177,7 @@ class Emulator {
       std::cerr << "Invalid string identifier" << std::endl;
       return ERROR;
     }
-    int const_number = GetStringNumber(prevLine_);
+    int const_number = GetStringNumber(prevLine_, 1);
     std::pair<int, std::string> p(const_number, line);
     stringMap_.insert(p);
     flags_.StringConstant = false;
