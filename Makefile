@@ -1,5 +1,5 @@
 CPP_COMPILER = clang++
-FLAGS = -std=c++20
+FLAGS = -std=c++20 -Werror
 BUILD_DIR = build/out
 
 out:
