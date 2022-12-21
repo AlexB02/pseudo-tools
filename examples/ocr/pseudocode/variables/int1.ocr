@@ -1,0 +1,2 @@
+int_var = 10
+print(int_var)

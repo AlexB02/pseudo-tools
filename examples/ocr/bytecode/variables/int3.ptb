@@ -1,0 +1,6 @@
+P:
+CMOV 10 &0
+RMOV &0 &1
+RADD &0 &0
+PRINT &0
+PRINT &1
