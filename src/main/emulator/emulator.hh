@@ -53,7 +53,7 @@ class Emulator {
   size_t GetStringNumber(std::string const string, int from) {
     assert(from < string.size());
     std::string substring = string.substr(from, std::string::npos);
-    if (!IsInt(substring)) {
+    if (!ContainsLeadingInteger(substring)) {
       exceptionHandler_.ThrowException(ERROR, "Couldn't parse int from \"" + string + "\"");
     }
     return std::stoi(substring);
@@ -151,7 +151,7 @@ class Emulator {
       exceptionHandler_.Assert(tokens.size() == 3, "Invalid CADD");
       std::string const constant = tokens[1];
       std::string const address = tokens[2];
-      exceptionHandler_.Assert(IsInt(constant), "Invalid constant in CADD");
+      exceptionHandler_.Assert(ContainsLeadingInteger(constant), "Invalid constant in CADD");
       exceptionHandler_.Assert(IsAddress(address), "Invalid address in CADD");
       int add_value = std::stoi(constant);
       size_t loc = GetStringNumber(address, 1);

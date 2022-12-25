@@ -24,5 +24,5 @@ class ExceptionHandler {
       }
     }
   private:
-   std::string const fileName_;
+    std::string const fileName_;
 };

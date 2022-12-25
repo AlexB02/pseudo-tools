@@ -1,10 +1,12 @@
-
-bool IsInt(std::string const value) {
-  try {
-      std::stoi(value);
-      return true;
-  } 
-  catch (std::invalid_argument const& ex) {} 
-  catch (std::out_of_range const& ex) {}
-  return false;
+/**
+ * @brief Returns true if the input begins with an integer.
+ *        
+ * @param value String to be checked.
+ * @return If string begins with an integer.
+ */
+bool ContainsLeadingInteger(std::string const value) {
+  if (value[0] == '-') {
+    return isdigit(value[1]);
+  }
+  return isdigit(value[0]);
 }
